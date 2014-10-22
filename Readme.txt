@@ -1,5 +1,5 @@
 Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.
-Dakusan’s MySQL Library (DSQL) - v2.0.0.1 http://www.castledragmire.com/Projects/DSQL
+Dakusan’s MySQL Library (DSQL) - v2.0.1.0 http://www.castledragmire.com/Projects/DSQL
 
 A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.
 
@@ -245,6 +245,8 @@ Functions
 	FetchNext()
 		Fetch the next row
 		Returns FALSE if the next row does not exist
+	Fetch($RowNum=null)
+		Wrapper function in which no parameter means FetchAll() and 1 parameter means FetchRow($RowNum)
 	GetKeyed()
 		Wrapper for GetKeyedArray() with the passed array being retrieved from FetchAll()
 

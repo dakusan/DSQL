@@ -1,6 +1,6 @@
 <?php
 /***Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information. ***/
-/***Dakusan's MySQL Library (DSQL) - v2.0.0.1 http://www.castledragmire.com/Projects/DSQL ***/
+/***Dakusan's MySQL Library (DSQL) - v2.0.1.0 http://www.castledragmire.com/Projects/DSQL ***/
 
 //Primary SQL class
 class DSQL
@@ -302,6 +302,9 @@ class DSQLResult
 		$this->CheckFinishedState(); //Check for finished
 		return ($this->NumFields==1 ? current($Row) : $Row); //Return the found value
 	}
+
+	//Wrapper function in which no parameter means FetchAll() and 1 parameter means FetchRow($RowNum)
+	public function Fetch($RowNum=null) { return !isset($RowNum) ? $this->FetchAll() : $this->FetchRow($RowNum); }
 
 	//Returns an associative array of the passed array in which the key of each item becomes the first extracted value from the item. Original row ordering is maintained
 	public static function GetKeyedArray($Arr)
