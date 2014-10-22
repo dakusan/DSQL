@@ -1,13 +1,13 @@
-<?
+<?php
 /***Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information. ***/
-/***Dakusan's MySQL Library (DSQL) - v2.0 http://www.castledragmire.com/Projects/DSQL ***/
+/***Dakusan's MySQL Library (DSQL) - v2.0.0.1 http://www.castledragmire.com/Projects/DSQL ***/
 
 //Primary SQL class
 class DSQL
 {
 	//Members
 	public $Debug=false; //If set to true, query information is retained, and errors also output the query parameters
-	public $QueryReplacements=Array(); //Replaces given regular expressions (keys) with the given values on queries
+	public $QueryReplacements=Array(); //Replaces a queries format parameter with given regular expressions
 
 	//Create the connection to the database. Throws DSQLException on connection error
 	private $SQLConn=NULL, $ConnectionParms;

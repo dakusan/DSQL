@@ -1,5 +1,5 @@
 Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.
-Dakusan's MySQL Library (DSQL) - v2.0 http://www.castledragmire.com/Projects/DSQL
+Dakusan’s MySQL Library (DSQL) - v2.0.0.1 http://www.castledragmire.com/Projects/DSQL
 
 A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.
 
@@ -30,8 +30,10 @@ Query creation with values:
 		$MyConn->Query('INSERT INTO _TBL_data VALUES (?, ?, ?, ?)', $Values);
 		$MyConn->Query('INSERT INTO _TBL_data VALUES (?, ?, ?, ?), (?, ?, ?, ?)', 1, 2, 3, 4, 5, 6, 7, 8);
 	Ran Queries:
-		INSERT INTO example_data VALUES (1.0, '30.0', NULL, 'test \\' string')
-		INSERT INTO example_data VALUES INSERT INTO _TBL_data VALUES (1, 2, 3, 4), (5, 6, 7, 8)
+		INSERT INTO example_data VALUES (1.0, '30.0', NULL, 'test \' string')
+		INSERT INTO example_data VALUES (1, 2, 3, 4), (5, 6, 7, 8)
+	Notes:
+		This is also an example of flattening (See DSQL.FlattenArray)
 
 Cleaning a query:
 	Code:
@@ -101,7 +103,7 @@ Members
 		The default remembered object is the first DSQL object made (set again if a new object is made after the previously stored DSQL object is closed)
 	QueryReplacements
 		An array of: RegularExpression => Replacement
-		Replaces given regular expressions with the given values on queries
+		Replaces a queries format parameter with given regular expressions
 		For example:
 			Array(
 				'/_TBL_/'=>'MyForum_',               //Changes all instance of “_TBL_” to “MyForum_” (useful for adding table prefixes)
@@ -119,7 +121,7 @@ Object Creation
 		Possible Errors:
 			(DSQLException) Connect failed: ...
 	new DSQL($Vars)
-		Calls the primary construct with the variables found in the array as parameters
+		Calls the primary construct with the members found in the array as parameters
 		This is used if 1 parameter is passed to the constructor
 	new DSQL()
 		Takes a global variable “$DSQLInfo” and calls the DSQL($Vars) construct with it
@@ -150,13 +152,14 @@ Functions
 	GetInsertID()
 		Returns the insert ID for the last statement
 	GetSQLConn()
-		Returns the SQL connection object (SQLConn member)
+		Returns the SQL connection object ([private] SQLConn member)
 	GetSQLConnectionParms()
-		Returns an array containing the connection Parameters
+		Returns an array containing the connection parameters
 		Array('Server'=>, 'Username'=>, 'Password'=>, 'Database'=>)
 		Database is null if not initially specified
 	Self()
 		Returns the DSQL object
+		Useful for when calling statically
 Function Notes
 	All functions except GetSQLConn(), GetSQLConnectionParms(), and Self() can throw a (DSQLException) “Connection is not open”
 	All functions are internally named starting with an underscore to facilitate the dual static/nonstatic calling functionality. For example: DSQL::_Query
@@ -199,11 +202,11 @@ Exceptions and Errors
 	virtual Error($Msg)
 		Throws a DSQLException (if not $PrintAndDieOnError)
 	virtual SQLError(
-		$Error,                  The error message
-		$QueryFormat,            The passed query format
-		$QueryParameters,        The passed parameters. This is not flattened on the “Query data count does not match” error
-		$CompiledQuery,          The compiled query with question marks replaced
-		$StartTime               The unix timestamp of when the query started
+		$Error:                  The error message
+		$QueryFormat:            The passed query format
+		$QueryParameters:        The passed parameters. This is not flattened on the “Query data count does not match” error
+		$CompiledQuery:          The compiled query with question marks replaced
+		$StartTime:              The unix timestamp of when the query started
 	)
 		Throws a DSQLSqlException (if not $PrintAndDieOnError)
 
@@ -215,7 +218,7 @@ Implementation specific information
 	This implementation is MySQL specific
 	If only 1 return field is requested in the SQL statement, each row is returned as just a scalar instead of an array
 
-Gettable Members:
+Gettable Members
 	Parent: The DSQL parent
 	SQLResult: The result object returned from SQL. TRUE if no result
 	CurRowNum: The current row number ready to be fetched
@@ -227,6 +230,7 @@ Gettable Members:
 
 Object Creation
 	new DSQLResult($Parent, $SQLResult, $QueryFormat, $QueryParameters, $CompiledQuery, $StartTime, $ExecutionTime)
+		See “Gettable Members” for parameter information
 		This will generally only be called from DSQL::Query
 
 Functions

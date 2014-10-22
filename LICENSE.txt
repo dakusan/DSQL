@@ -1,6 +1,6 @@
 Dakusan License v2.0
 
-Regarding: DSQL v2.0
+Regarding: Dakusan’s MySQL Library (DSQL) v2.0.x
 http://www.castledragmire.com/Projects/DSQL
 
 ------------------------------------------------------------------------------
@@ -18,14 +18,14 @@ The below license uses the Original BSD License (4 Clause), slightly modified.
 
 Further/updated licensing/copyright information can be found at:
   http://www.castledragmire.com/Copyright
-	
+
 Jeffrey Riaboy (aka Dakusan)
   http://www.castledragmire.com (Dakusan's Domain)
 
 ------------------------------------------------------------------------------
                                   Copyright
 ------------------------------------------------------------------------------
-Copyright (c)2006-2009 Jeffrey Riaboy (aka Dakusan).    All  rights  reserved.
+Copyright (c)2006-2014 Jeffrey Riaboy (aka Dakusan).    All  rights  reserved.
 
 ------------------------------------------------------------------------------
                                  The License
@@ -56,7 +56,7 @@ DAMAGES  (INCLUDING,  BUT NOT  LIMITED TO,  PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES;  LOSS OF  USE, DATA,  OR PROFITS;  OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF  THIS  SOFTWARE,  EVEN  IF  ADVISED  OF  THE  POSSIBILITY  OF  SUCH DAMAGE. 
+OF  THIS  SOFTWARE,  EVEN  IF  ADVISED  OF  THE  POSSIBILITY  OF  SUCH DAMAGE.
 
 ------------------------------------------------------------------------------
                                   Addendum
