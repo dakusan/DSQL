@@ -1,0 +1,275 @@
+Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.
+Dakusan's MySQL Library (DSQL) - v2.0 http://www.castledragmire.com/Projects/DSQL
+
+A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.
+
+I’ve found using php’s included MySQL functions to be cumbersome, take a lot more code than necessary, and create code that is not very readable. I am also not completely happy with PDO, so DSQL is my solution to this problem.
+
+The classes in this library are written generically so they could easily be converted to any other database software.
+
+-------------------------------Simple examples-------------------------------
+Create the primary connection:
+	Code:
+		$MyConn=new DSQL('localhost', 'root', '', 'example_db');
+
+Create the example table:
+	Code:
+		DSQL::Query('CREATE TABLE example_data (w int, x int, y int NULL, z varchar(255))');
+	Notes:
+		Example of using the globally remembered connection
+
+Table prefix:
+	Code:
+		$MyConn->QueryReplacements=Array('/_TBL_/'=>'example_');
+	Notes:
+		All instances of “_TBL” are now replaced with “example_”
+
+Query creation with values:
+	Code:
+		$Values=Array(1.0, Array('30.0', null), "test ' string");
+		$MyConn->Query('INSERT INTO _TBL_data VALUES (?, ?, ?, ?)', $Values);
+		$MyConn->Query('INSERT INTO _TBL_data VALUES (?, ?, ?, ?), (?, ?, ?, ?)', 1, 2, 3, 4, 5, 6, 7, 8);
+	Ran Queries:
+		INSERT INTO example_data VALUES (1.0, '30.0', NULL, 'test \\' string')
+		INSERT INTO example_data VALUES INSERT INTO _TBL_data VALUES (1, 2, 3, 4), (5, 6, 7, 8)
+
+Cleaning a query:
+	Code:
+		$Data=$MyConn->CleanQuery('
+			SELECT T1.w AS W1, T2.w AS W2, T1.x AS X1, T2.x AS X2
+			FROM _TBL_data AS T1
+			INNER JOIN example_data AS T2 ON T2.w=T1.w
+			WHERE T1.x=?', 30);
+	Ran Queries:
+		SELECT T1.w AS W1, T2.w AS W2, T1.x AS X1, T2.x AS X2 FROM example_data AS T1 INNER JOIN example_data AS T2 ON T2.w=T1.w WHERE T1.x=30
+
+Fetching all data:
+	Code:
+		$Result=$Data->FetchAll(); //Uses $Data from “Cleaning a query”
+	Results:
+		Array(
+			Array('1', '1', '30', '30'),
+			Array('1', '1', '30', '2')
+		)
+
+Fetching scalars:
+	Code:
+		$Result=$MyConn->Query('SELECT x FROM example_data')->FetchAll();
+	Return:
+		Array('30', '2', '6');
+	Notes:
+		Since there is only 1 value returned, each item in the result set is returned as a scalar instead of an array
+
+Fetching keyed data:
+	Code:
+		$Result=$MyConn->Query('SELECT w, x, y, z FROM example_data WHERE x!=?', 2)->GetKeyed();
+	Result:
+		Array(
+			1=>Array('x'=>'30', 'y'=>NULL, 'z'=>"test ' string"),
+			5=>Array('x'=>'6', 'y'=>'7', 'z'=>'8')
+		)
+	Notes:
+		If only 2 return fields are requested with GetKeyed, the value of each item would instead be a scalar
+
+----------------------------------Class DSQL---------------------------------
+General information
+	MySQL interface
+	Statically called functions use the remembered DSQL object in $GlobalConnection
+		This allows the [default] DSQL object to not have to be remembered or passed externally. This is useful since generally only 1 database connection is established.
+		A general exception is thrown if the $GlobalConnection is not valid
+
+Implementation specific information
+	This implementation is MySQL specific
+	UTF8 is automatically used as the character set
+	The time zone for SQL is pulled from the php default time zone
+
+Members
+	Debug
+		If set to true, query information is retained, and error functions also output the query parameters and compiled query
+	PrintAndDieOnError
+		If true, outputs the error as html and dies. Otherwise, throws the appropriate DSQL exception type
+		Default=true
+	QuerysInfo
+		When debug is turned on, Query() adds items to this list with its information
+		Each item contains an array of:
+			StartTime: The unix timestamp of when the query started
+			ExecutionTime: The number of seconds (including fractions) the query took to execute. This includes the round trip to the server
+			QueryFormat: The query format after replacements by $QueryReplacements
+			Values: An array of the values filled into the query
+	GlobalConnection (static)
+		This DSQL is used for static calls
+		The default remembered object is the first DSQL object made (set again if a new object is made after the previously stored DSQL object is closed)
+	QueryReplacements
+		An array of: RegularExpression => Replacement
+		Replaces given regular expressions with the given values on queries
+		For example:
+			Array(
+				'/_TBL_/'=>'MyForum_',               //Changes all instance of “_TBL_” to “MyForum_” (useful for adding table prefixes)
+				'/^(INSERT)(\s+)/i'=>'$1 IGNORE$2',  //Changes all queries starting with “INSERT ” to “INSERT IGNORE ” (for example: “insert   into foo” to “insert INGORE   into foo”)
+				'/\s*;?\s*$/'=>''                    //Removes a semicolon at the end of the query and/or any whitespace at the end
+			)
+		This happens at the top of the Query() function, so all errors and information regarding the query will reflect these replacements
+
+Object Creation
+	new DSQL($Server='localhost', $UserName='', $Password='', $Database=NULL)
+		Connect to the server
+		If database is not specified, none is selected
+		In all construct functions, if a parameter is not specified, the default is used
+		This is used if 2 or more parameters are passed to the constructor
+		Possible Errors:
+			(DSQLException) Connect failed: ...
+	new DSQL($Vars)
+		Calls the primary construct with the variables found in the array as parameters
+		This is used if 1 parameter is passed to the constructor
+	new DSQL()
+		Takes a global variable “$DSQLInfo” and calls the DSQL($Vars) construct with it
+		This is used if no parameters are passed to the constructor
+		Possible Errors:
+			(DSQLException) Cannot find global SQL connecting information
+
+Functions
+	Close()
+		Close and clear the database connection
+	Query($QueryFormat, $Variables...)
+		Execute a query
+		The query contains question marks where its variables need to be inserted. The number of variables must equal the number of question marks
+		All passed parameters (except the query format) are flattened to find the final list of variables
+			For example:
+				Query('INSERT INTO foo VALUES (?, ?, ?, ?, ?)', Array(01, Array('01', 1.10), '1.10'), null)
+			Will execute a query of:
+				INSERT INTO foo VALUES (1, '01', 1.1, '1.10', NULL)
+		NULL and numbers are passed unescaped
+		Returns a DSQLResult
+		Possible Errors:
+			(DSQLSqlException) Query data count does not match
+			(DSQLSqlException) SQL query error: ...
+	CleanQuery($QueryFormat, $Variables...)
+		Wrapper for Query(), but changes all consecutive whitespace characters into a single space, and trims beginning and end white space
+	GetAffectedRows()
+		Returns the number of affected rows in the last statement
+	GetInsertID()
+		Returns the insert ID for the last statement
+	GetSQLConn()
+		Returns the SQL connection object (SQLConn member)
+	GetSQLConnectionParms()
+		Returns an array containing the connection Parameters
+		Array('Server'=>, 'Username'=>, 'Password'=>, 'Database'=>)
+		Database is null if not initially specified
+	Self()
+		Returns the DSQL object
+Function Notes
+	All functions except GetSQLConn(), GetSQLConnectionParms(), and Self() can throw a (DSQLException) “Connection is not open”
+	All functions are internally named starting with an underscore to facilitate the dual static/nonstatic calling functionality. For example: DSQL::_Query
+
+Helper (static) functions
+	FlattenArray($Array)
+		Flattens all nested arrays into a single array
+	PrepareList($List)
+		Returns a string of question marks separated by commas whose list length is equal to the array length of the parameter
+		For example:
+			$Values=Array('a'=>5, 'b'=>10, 'c'=>15); //This is an example array in which the keys are the column names and the values are also the SQL’s field values. This array can be passed directly to Query()
+			PrepareList($Values); //The keys are not needed for this function; only the list length
+		Will return:
+			'?, ?, ?'
+	PrepareUpdateList($NameList)
+		Returns a string in the format “NAME=?, NAME=?, ..., NAME=?”
+		For example:
+			PrepareUpdateList(array_keys($Values)) //See $Values from above example
+		Will return:
+			'a=?, b=?, c=?'
+		This does not account for reserved field names that need to be enclosed in backticks
+	EscapeSearchField($S)
+		Create a LIKE search string [for MySQL]
+		This is done by:
+			Escaping with a backslash all backslashes, underscores, and percent signs
+			Adding a percent sign to the beginning and end of the string
+		For example:
+			EscapeSearchField('ab%c_d\\e')
+		Will return:
+			'%ab\\%c\\_d\\\\e%'
+			Un-php-stringified: %ab\%c\_d\\e%
+
+Exceptions and Errors
+	The error functions may be overwritten in a derived class
+	EXCEPTION DSQLException
+		Standard exception with just an error message
+	EXCEPTION DSQLSqlException
+		More specific exception for SQL queries
+		See “virtual SQLError” for members
+	virtual Error($Msg)
+		Throws a DSQLException (if not $PrintAndDieOnError)
+	virtual SQLError(
+		$Error,                  The error message
+		$QueryFormat,            The passed query format
+		$QueryParameters,        The passed parameters. This is not flattened on the “Query data count does not match” error
+		$CompiledQuery,          The compiled query with question marks replaced
+		$StartTime               The unix timestamp of when the query started
+	)
+		Throws a DSQLSqlException (if not $PrintAndDieOnError)
+
+-------------------------------Class DSQLResult------------------------------
+General information
+	MySQL interface for returns from executed statements
+
+Implementation specific information
+	This implementation is MySQL specific
+	If only 1 return field is requested in the SQL statement, each row is returned as just a scalar instead of an array
+
+Gettable Members:
+	Parent: The DSQL parent
+	SQLResult: The result object returned from SQL. TRUE if no result
+	CurRowNum: The current row number ready to be fetched
+	NumRows: The number of rows in the result set
+	NumFields: The number of fields in the return rows
+	Finished: If all rows have been retrieved
+	QueryFormat, QueryParameters, CompiledQuery, StartTime: See parameter explanations from “DSQL::SQLError”
+	ExecutionTime: The unix time the query took to execute with fractions of a second. It includes the round trip to the server
+
+Object Creation
+	new DSQLResult($Parent, $SQLResult, $QueryFormat, $QueryParameters, $CompiledQuery, $StartTime, $ExecutionTime)
+		This will generally only be called from DSQL::Query
+
+Functions
+	FetchAll()
+		Fetch all rows into an array
+	FetchRow($RowNum)
+		Fetch only the requested row number
+		Returns FALSE if the row does not exist
+		Possible Errors:
+			(DSQLSqlException) All rows have already been fetched
+			(DSQLSqlException) Cannot call FetchRow on a RowNum that has already been fetched
+	FetchNext()
+		Fetch the next row
+		Returns FALSE if the next row does not exist
+	GetKeyed()
+		Wrapper for GetKeyedArray() with the passed array being retrieved from FetchAll()
+
+Helper (static) functions
+	GetKeyedArray($Array)
+		Returns an associative array of the passed array in which the key of each item becomes the first extracted value from the item
+		Original row ordering is maintained
+		The first key in each original item must have the same name
+		For example:
+			GetKeyedArray(Array(
+				Array('v1'=>'b', 'v2'=>1, 'v3'=>2),
+				Array('v1'=>'a', 'v2'=>3, 'v3'=>4),
+				Array('v1'=>'c', 'v2'=>5, 'v3'=>6)
+			))
+		Will Return:
+			Array(
+				'b'=>Array('v2'=>1,'v3'=>2),
+				'a'=>Array('v2'=>3,'v3'=>4),
+				'c'=>Array('v2'=>5,'v3'=>6)
+			)
+
+		If only 1 field remains after the key extraction, the value is just the scalar instead of an array
+		For example:
+			GetKeyedArray(Array(
+				Array('v1'=>'b', 'v2'=>1),
+				Array('v1'=>'a', 'v2'=>3)
+			))
+		Will Return:
+			Array(
+				'b'=>1,
+				'a'=>3,
+			)
