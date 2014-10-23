@@ -1,4 +1,3 @@
-Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.<br>
 Dakusan’s MySQL Library (DSQL) - v2.0.1.0 http://www.castledragmire.com/Projects/DSQL
 
 **A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.**
@@ -325,3 +324,5 @@ Array(
   'a'=>3,
 )
 ```
+
+Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.
