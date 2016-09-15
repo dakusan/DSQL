@@ -1,6 +1,6 @@
 <?php
 /***Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information. ***/
-/***Dakusan's MySQL Library (DSQL) - v2.0.1.0 http://www.castledragmire.com/Projects/DSQL ***/
+/***Dakusan's MySQL Library (DSQL) - v2.0.2.0 http://www.castledragmire.com/Projects/DSQL ***/
 
 //Primary SQL class
 class DSQL
@@ -13,6 +13,9 @@ class DSQL
 	private $SQLConn=NULL, $ConnectionParms;
 	function __construct()
 	{
+		//Set the $PrintAndDieOnError from $InitialPrintAndDieOnError
+		$this->PrintAndDieOnError=DSQL::$InitialPrintAndDieOnError;
+
 		//Get the connection variables
 		$VarDefaults=Array('Server'=>'localhost', 'UserName'=>'', 'Password'=>'', 'Database'=>NULL);
 		$Vars=func_get_args(); //Same format as $VarDefaults with final data
@@ -41,6 +44,7 @@ class DSQL
 		//Set connection to UTF8 and used php time zone
 		mysqli_query($this->SQLConn, "SET NAMES 'utf8' COLLATE 'utf8_general_ci'");
 		mysqli_query($this->SQLConn, "SET CHARACTER SET 'utf8'");
+		mysqli_set_charset($this->SQLConn, 'utf8');
 		$this->Query('SET time_zone=?', date_default_timezone_get());
 
 		//If the first connection, or global connection is not currently set, use the new DSQL object
@@ -141,7 +145,8 @@ class DSQL
 	public function _Self()			{ return $this; }
 
 	//Error functions (throwing and executing error messages)
-	public $PrintAndDieOnError=true; //If true, outputs the error as html and dies. Otherwise, throws a "DSQLException" error
+	public static $InitialPrintAndDieOnError=true;
+	public $PrintAndDieOnError; //If true, outputs the error as html and dies. Otherwise, throws a "DSQLException" error. Is set to $InitialPrintAndDieOnError on initialization
 	public function Error($Msg)
 	{
 		if(!$this->PrintAndDieOnError)
@@ -159,7 +164,7 @@ class DSQL
 	public function FormatSQLError($Error, $QueryFormat, $QueryParameters, $CompiledQuery, $StartTime) //TODO: I want this to be private, but I can't since DSQLSqlException cannot be nested or friended
 	{
 		return
-			"Start Time: ".date("Y-m-d g:i:s\n", $StartTime).
+			"Start Time: ".date("Y-m-d H:i:s\n", $StartTime).
 			"Error: $Error\n".
 			"Query: $QueryFormat".
 			(!$this->Debug ? '' :

@@ -1,4 +1,4 @@
-Dakusan’s MySQL Library (DSQL) - v2.0.1.0 http://www.castledragmire.com/Projects/DSQL
+Dakusan’s MySQL Library (DSQL) - v2.0.2.0 http://www.castledragmire.com/Projects/DSQL
 
 **A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.**
 
@@ -101,6 +101,7 @@ Array(
 ##Members
 * <div name="Main_Member_Debug">**Debug**</div>
   * If set to true, [query information](#Main_Member_QuerysInfo) is retained, and [error functions](#Main_ErrorFunctions) also output the query parameters and compiled query
+  * This is set to `DSQL::$InitialPrintAndDieOnError` on initialization
 * <div name="Main_Member_PrintAndDieOnError">**PrintAndDieOnError**</div>
   * If true, outputs the error as html and dies. Otherwise, throws the appropriate [DSQL exception type](#Main_ErrorFunctions)
   * Default=true

@@ -1,5 +1,5 @@
 Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.
-Dakusan’s MySQL Library (DSQL) - v2.0.1.0 http://www.castledragmire.com/Projects/DSQL
+Dakusan’s MySQL Library (DSQL) - v2.0.2.0 http://www.castledragmire.com/Projects/DSQL
 
 A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.
 
@@ -88,6 +88,7 @@ Implementation specific information
 Members
 	Debug
 		If set to true, query information is retained, and error functions also output the query parameters and compiled query
+		This is set to DSQL::$InitialPrintAndDieOnError on initialization
 	PrintAndDieOnError
 		If true, outputs the error as html and dies. Otherwise, throws the appropriate DSQL exception type
 		Default=true
