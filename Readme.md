@@ -1,4 +1,4 @@
-Dakusan’s MySQL Library (DSQL) - v2.0.2.0 http://www.castledragmire.com/Projects/DSQL
+Dakusan’s MySQL Library (DSQL) - v2.0.2.2 http://www.castledragmire.com/Projects/DSQL
 
 **A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.**
 
@@ -102,6 +102,11 @@ Array(
 * <div name="Main_Member_Debug">**Debug**</div>
   * If set to true, [query information](#Main_Member_QuerysInfo) is retained, and [error functions](#Main_ErrorFunctions) also output the query parameters and compiled query
   * This is set to `DSQL::$InitialPrintAndDieOnError` on initialization
+* <div name="Main_Member_StrictMode">**StrictMode**</div>
+  * Set strict mode for the session
+    * 0=Do nothing
+    * 1=Turn on
+    * 2=Turn off
 * <div name="Main_Member_PrintAndDieOnError">**PrintAndDieOnError**</div>
   * If true, outputs the error as html and dies. Otherwise, throws the appropriate [DSQL exception type](#Main_ErrorFunctions)
   * Default=true
@@ -167,6 +172,8 @@ INSERT INTO foo VALUES (1, '01', 1.1, '1.10', NULL)
     * Possible Errors:
       * <div name="Main_Error_QueryCountNoMatch">([DSQLException](#Main_ErrorFunctions)) Query data count does not match</div>
       * ([DSQLException](#Main_ErrorFunctions)) SQL query error: ...
+* <div name="Main_Function_RawQuery">**RawQuery**($FinalQuery)</div>
+  * Executes a query with no modification to the query string
 * <div name="Main_Function_CleanQuery">**CleanQuery**($QueryFormat, $Variables...)</div>
   * Wrapper for [Query()](#Main_Function_Query), but changes all consecutive whitespace characters into a single space, and trims beginning and end white space
 * <div name="Main_Function_GetAffectedRows">**GetAffectedRows**()</div>
@@ -182,6 +189,9 @@ Array('Server'=>, 'Username'=>, 'Password'=>, 'Database'=>)
 ```
 * <div></div>
   * Database is null if not initially specified
+* <div name="Main_Function_EscapeString">**EscapeString**($Str, $Quote=false)</div>
+  * Escapes a string for use in a MySQL query
+  * It has an optional parameter that adds single quotes around the result
 * <div name="Main_Function_Self">**Self**()</div>
   * Returns the [DSQL](#Main_Class) object
   * Useful for when calling [statically](#Main_StaticCalls)
@@ -211,6 +221,14 @@ PrepareUpdateList(array_keys($Values)) //See $Values from above example
 * <div></div>
   * Will return: `'a=?, b=?, c=?'`
   * This does not account for reserved field names that need to be enclosed in backticks
+* <div name="Main_Function_PrepareInsertList">**PrepareInsertList**($NameList)</div>
+  * Returns a string in the format “(`NAME1`, `NAME2`, ..., `NAME#`), (?, ?, ..., ?)”
+  * For example:
+```php
+PrepareInsertList(array_keys($Values)) //See $Values from above example
+```
+* <div></div>
+  * Will return: ``'(`a`, `b`, `c`) VALUES (?, ?, ?)'``
 * <div name="Main_Function_EscapeSearchField">**EscapeSearchField**($S)</div>
   * Create a LIKE search string [for MySQL]
   * This is done by:

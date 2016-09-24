@@ -1,5 +1,5 @@
 Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information.
-Dakusan’s MySQL Library (DSQL) - v2.0.2.0 http://www.castledragmire.com/Projects/DSQL
+Dakusan’s MySQL Library (DSQL) - v2.0.2.2 http://www.castledragmire.com/Projects/DSQL
 
 A MySQL library for PHP with functionality to help facilitate cleaner and quicker SQL access.
 
@@ -89,6 +89,11 @@ Members
 	Debug
 		If set to true, query information is retained, and error functions also output the query parameters and compiled query
 		This is set to DSQL::$InitialPrintAndDieOnError on initialization
+	StrictMode
+		Set strict mode for the session
+			0=Do nothing
+			1=Turn on
+			2=Turn off
 	PrintAndDieOnError
 		If true, outputs the error as html and dies. Otherwise, throws the appropriate DSQL exception type
 		Default=true
@@ -146,6 +151,8 @@ Functions
 		Possible Errors:
 			(DSQLSqlException) Query data count does not match
 			(DSQLSqlException) SQL query error: ...
+	RawQuery($FinalQuery)
+		Executes a query with no modification to the query string
 	CleanQuery($QueryFormat, $Variables...)
 		Wrapper for Query(), but changes all consecutive whitespace characters into a single space, and trims beginning and end white space
 	GetAffectedRows()
@@ -158,6 +165,9 @@ Functions
 		Returns an array containing the connection parameters
 		Array('Server'=>, 'Username'=>, 'Password'=>, 'Database'=>)
 		Database is null if not initially specified
+	EscapeString($Str, $Quote=false)
+		Escapes a string for use in a MySQL query
+		It has an optional parameter that adds single quotes around the result
 	Self()
 		Returns the DSQL object
 		Useful for when calling statically
@@ -182,6 +192,12 @@ Helper (static) functions
 		Will return:
 			'a=?, b=?, c=?'
 		This does not account for reserved field names that need to be enclosed in backticks
+	PrepareInsertList($NameList)
+		Returns a string in the format “(`NAME1`, `NAME2`, ..., `NAME#`), (?, ?, ..., ?)”
+		For example:
+			PrepareInsertList(array_keys($Values)) //See $Values from above example
+		Will return:
+			'(`a`, `b`, `c`) VALUES (?, ?, ?)'
 	EscapeSearchField($S)
 		Create a LIKE search string [for MySQL]
 		This is done by:

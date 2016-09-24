@@ -1,12 +1,13 @@
 <?php
 /***Copyright and coded by Dakusan - See http://www.castledragmire.com/Copyright for more information. ***/
-/***Dakusan's MySQL Library (DSQL) - v2.0.2.0 http://www.castledragmire.com/Projects/DSQL ***/
+/***Dakusan's MySQL Library (DSQL) - v2.0.2.2 http://www.castledragmire.com/Projects/DSQL ***/
 
 //Primary SQL class
 class DSQL
 {
 	//Members
 	public $Debug=false; //If set to true, query information is retained, and errors also output the query parameters
+	public $StrictMode=1; //Set strict mode for the session: 0=Do nothing, 1=Turn on, 2=Turn off
 	public $QueryReplacements=Array(); //Replaces a queries format parameter with given regular expressions
 
 	//Create the connection to the database. Throws DSQLException on connection error
@@ -46,6 +47,12 @@ class DSQL
 		mysqli_query($this->SQLConn, "SET CHARACTER SET 'utf8'");
 		mysqli_set_charset($this->SQLConn, 'utf8');
 		$this->Query('SET time_zone=?', date_default_timezone_get());
+		if($this->StrictMode!=0)
+			$this->Query('SET SESSION sql_mode='.(
+				$this->StrictMode==1 ?
+					'CONCAT(@@SESSION.sql_mode,",STRICT_TRANS_TABLES,STRICT_ALL_TABLES")' :
+					'REPLACE(REPLACE(@@SESSION.sql_mode,"STRICT_TRANS_TABLES",""),"STRICT_ALL_TABLES","")'
+				));
 
 		//If the first connection, or global connection is not currently set, use the new DSQL object
 		if(!isset(self::$GlobalConnection) || self::$GlobalConnection->SQLConn===NULL)
@@ -59,7 +66,7 @@ class DSQL
 	private static function CallRealFunc($DSQLObj, $FuncName, $FuncArgs) //If $DSQLObj is NULL, uses $GlobalConnection
 	{
 		//Check for valid function name
-		if(!in_array($FuncName, Array('Close', 'Query', 'CleanQuery', 'GetAffectedRows', 'GetInsertID', 'GetSQLConn', 'GetSQLConnectionParms', 'Self')))
+		if(!in_array($FuncName, Array('Close', 'Query', 'RawQuery', 'CleanQuery', 'GetAffectedRows', 'GetInsertID', 'GetSQLConn', 'GetSQLConnectionParms', 'EscapeString', 'Self')))
 		{
 			$Trace=debug_backtrace();
 			trigger_error(sprintf('Call to undefined method DSQL::%s() in %s on line %s', $FuncName, $Trace[1]['file'], $Trace[1]['line']), E_USER_ERROR); //Execute function not found error
@@ -122,6 +129,29 @@ class DSQL
 		//Returns the DSQLResult
 		return new DSQLResult($this, $Result, $QueryFormat, $Values, $FinalQuery, $StartTime, $ExecutionTime);
 	}
+	public function _RawQuery($FinalQuery)
+	{
+		//Fill in values to emulate _Query
+		$QueryFormat=$FinalQuery;
+		$Values=Array();
+
+		//Run the query and get its timing information
+		$StartTime=microtime(true);
+		$Result=mysqli_query($this->SQLConn, $FinalQuery);
+		$ExecutionTime=microtime(true)-$StartTime; //Floating second execution time
+		$StartTime=ceil($StartTime); //Change to Unix second timestamp
+
+		//Check query result
+		if($Result===FALSE)
+			return $this->SQLError('SQL query error: '.mysqli_error($this->SQLConn), $QueryFormat, $Values, $FinalQuery, $StartTime);
+
+		//Remember the original data if debug is turned on
+		if($this->Debug)
+			$this->QuerysInfo[]=Array('StartTime'=>$StartTime, 'ExecutionTime'=>$ExecutionTime, 'QueryFormat'=>$QueryFormat, 'Values'=>$Values);
+
+		//Returns the DSQLResult
+		return new DSQLResult($this, $Result, $QueryFormat, $Values, $FinalQuery, $StartTime, $ExecutionTime);
+	}
 	public function _CleanQuery($QueryFormat) //Wrapper for Query(), but changes all consecutive whitespace characters into a single splace, and trims beginning and end white space
 	{
 		$Args=func_get_args();
@@ -142,6 +172,7 @@ class DSQL
 	public function _GetInsertID()		{ $this->CheckConn(); return mysqli_insert_id($this->SQLConn); }
 	public function _GetSQLConn()		{ return $this->SQLConn; }
 	public function _GetSQLConnectionParms(){ return $this->ConnectionParms; }
+	public function _EscapeString($S,$Quote=0){ $V=mysqli_escape_string($this->SQLConn, $S); return $Quote ? sprintf("'%s'", $V) : $V; }
 	public function _Self()			{ return $this; }
 
 	//Error functions (throwing and executing error messages)
@@ -185,6 +216,7 @@ class DSQL
 	}
 	public static function PrepareList($List) { return implode(', ', array_fill(0, count($List), '?')); } //Returns a string of question marks separated by commas whos list length is equal to the array length of the parameter
 	public static function PrepareUpdateList($NameList) { return implode('=?, ', $NameList).'=?'; } //Returns a string in the format "NAME=?, NAME=?, ..., NAME=?"
+	public static function PrepareInsertList($NameList) { return !count($NameList) ? null : '(`'.implode('`, `', $NameList).'`) VALUES ('.self::PrepareList($NameList).')'; } //Returns (FIELD1, ..., FIELD#) VALUES (?, ...)
 	public static function EscapeSearchField($S) { $e='\\'; return '%'.str_replace(array($e, '_', '%'), array($e.$e, $e.'_', $e.'%'), $S).'%'; } //Create a LIKE search string [for MySQL]
 }
 
