@@ -88,7 +88,6 @@ Implementation specific information
 Members
 	Debug
 		If set to true, query information is retained, and error functions also output the query parameters and compiled query
-		This is set to DSQL::$InitialPrintAndDieOnError on initialization
 	StrictMode
 		Set strict mode for the session
 			0=Do nothing
@@ -96,7 +95,7 @@ Members
 			2=Turn off
 	PrintAndDieOnError
 		If true, outputs the error as html and dies. Otherwise, throws the appropriate DSQL exception type
-		Default=true
+		This is set to DSQL::$InitialPrintAndDieOnError on initialization
 	QuerysInfo
 		When debug is turned on, Query() adds items to this list with its information
 		Each item contains an array of:

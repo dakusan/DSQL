@@ -101,7 +101,6 @@ Array(
 ##Members
 * <div name="Main_Member_Debug">**Debug**</div>
   * If set to true, [query information](#Main_Member_QuerysInfo) is retained, and [error functions](#Main_ErrorFunctions) also output the query parameters and compiled query
-  * This is set to `DSQL::$InitialPrintAndDieOnError` on initialization
 * <div name="Main_Member_StrictMode">**StrictMode**</div>
   * Set strict mode for the session
     * 0=Do nothing
@@ -109,7 +108,7 @@ Array(
     * 2=Turn off
 * <div name="Main_Member_PrintAndDieOnError">**PrintAndDieOnError**</div>
   * If true, outputs the error as html and dies. Otherwise, throws the appropriate [DSQL exception type](#Main_ErrorFunctions)
-  * Default=true
+  * This is set to `DSQL::$InitialPrintAndDieOnError` on initialization
 * <div name="Main_Member_QuerysInfo">**QuerysInfo**</div>
   * When [debug](#Main_Member_Debug) is turned on, [Query()](#Main_Function_Query) adds items to this list with its information
   * Each item contains an array of:
